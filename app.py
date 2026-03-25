@@ -1,16 +1,27 @@
+import os
+import json
 from flask import Flask, render_template, redirect, url_for
 import gspread
 from datetime import datetime
 
 app = Flask(__name__)
 
-# 支援的星期清單 (需與 Google Sheets 分頁名稱一致)
 VALID_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 
 def get_sheet_data(day_name):
     try:
-        gc = gspread.service_account(filename="credentials.json")
+        # 1. 檢查是否有環境變數 (Render 環境)
+        creds_json = os.environ.get("GOOGLE_CREDS_JSON")
+
+        if creds_json:
+            # 雲端環境：從變數讀取 JSON 字串
+            creds_info = json.loads(creds_json)
+            gc = gspread.service_account_from_dict(creds_info)
+        else:
+            # 本地環境：從檔案讀取
+            gc = gspread.service_account(filename="credentials.json")
+
         sh = gc.open("Mobile_Attendance")
         worksheet = sh.worksheet(day_name)
         data = worksheet.get_all_records()
@@ -22,7 +33,7 @@ def get_sheet_data(day_name):
                 row["電話"] = "0" + phone
         return data
     except Exception as e:
-        print(f"讀取資料錯誤 ({day_name}): {e}")
+        print(f"Error: {e}")
         return None
 
 
