@@ -10,12 +10,20 @@ VALID_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
 
 def get_sheet_data(day_name):
     try:
-        # 強制只讀取 credentials.json 檔案
-        # 在 Render 上，這會讀取你設定的 Secret File
-        # 在本地端，這會讀取你資料夾裡的檔案
-        gc = gspread.service_account(filename="credentials.json")
+        # 改用 API Key 方式連線 (最穩，避開 JWT 簽名問題)
+        # 注意：你需要先在 Google Cloud 啟用 "Google Sheets API"
+        api_key = os.environ.get("GOOGLE_API_KEY")
 
-        sh = gc.open("Mobile_Attendance")
+        if not api_key:
+            # 本地測試時，如果沒設環境變數，就寫死測試 (正式上線請放環境變數)
+            api_key = "AIzaSyD5mK9GiL-qGNO4KJlz4gvyF_8RvbpzloI"
+
+        gc = gspread.api_key(api_key)
+
+        # 開啟試算表 (注意：使用 API Key 時，試算表必須設為「任何知道連結的人都可以查看」)
+        sh = gc.open_by_key(
+            "1GlkGQiFIvGryanCt3jYDppD9pSqRm1tS1wgsWq6xa4U"
+        )  # 試算表 URL 中間那串長代碼
         worksheet = sh.worksheet(day_name)
         data = worksheet.get_all_records()
 
