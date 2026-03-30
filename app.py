@@ -5,7 +5,8 @@ from flask import Flask, render_template, redirect, url_for, request
 from datetime import datetime
 
 app = Flask(__name__)
-
+# ✅ 正確的寫法（部署到 Render 用）
+api_key = os.environ.get("GOOGLE_API_KEY")
 # 你的 Google 設定
 GAS_URL = "https://script.google.com/macros/s/AKfycbyVzMnlJhyMHtSLbMTaDdLqQR_gPhMBejyI4oS5TQ-Cwee26862w8hQuLT2fmox3kCf/exec"
 SHEET_ID = "1GlkGQiFIvGryanCt3jYDppD9pSqRm1tS1wgsWq6xa4U"
