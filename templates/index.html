@@ -2,230 +2,155 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>佳音英語 點名系統 | Joy English Check-in</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>佳音英語點名系統</title>
+    <!-- 引入 Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Google 字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* 佳音英語 CI 顏色與字體設定 */
-        :root {
-            --joy-red: #E60012; /* 佳音經典紅 */
-            --joy-dark-red: #B3000E;
-            --joy-light-bg: #FDFDFD;
-            --text-dark: #333333;
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f4f7f6;
+            padding-bottom: 50px;
         }
-
-        body { 
-            background-color: var(--joy-light-bg); 
-            font-family: "Microsoft JhengHei", "Heiti TC", sans-serif; 
-            color: var(--text-dark);
-        }
-
-        /* 頂部標題列 */
-        .joy-header {
-            background-color: white;
-            border-bottom: 3px solid var(--joy-red);
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .joy-logo-text {
-            color: var(--joy-red);
-            font-weight: 900;
-            font-size: 1.8rem;
-            letter-spacing: -1px;
-        }
-        .joy-logo-subtext {
-            color: var(--text-dark);
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .main-container { max-width: 900px; margin: 20px auto; padding: 10px; }
-        
-        /* 星期按鈕樣式 (佳音紅版) */
-        .day-btn-group .btn { 
-            min-width: 55px; 
-            font-weight: bold; 
-            border-color: var(--joy-red);
-            color: var(--joy-red);
-        }
-        .day-btn-group .btn-check:checked + .btn, 
-        .day-btn-group .btn:active, 
-        .day-btn-group .btn.active {
-            background-color: var(--joy-red);
-            border-color: var(--joy-red);
-            color: white;
-        }
-        
-        /* 點名變色樣式 (使用淡紅色背景) */
-        .student-row { cursor: pointer; transition: 0.2s; border-bottom: 1px solid #eee; }
-        .student-row:hover { background-color: #fff1f1; }
-        .student-row.checked-in { 
-            background-color: #ffeaea !important; /* 淡紅背景 */
-            border-left: 5px solid var(--joy-red); 
-        }
-        .student-row.checked-in td { color: #888; text-decoration: line-through; }
-        .student-row.checked-in .fw-bold { color: #888 !important; }
-        
-        /* 老師篩選按鈕 (活潑一點的樣式) */
-        .teacher-tag { 
-            margin: 3px; 
-            font-size: 0.85rem; 
-            border-radius: 20px;
-            padding: 5px 12px;
-            border-color: #ddd;
-            color: #555;
-        }
-        .teacher-tag.btn-dark {
-            background-color: var(--text-dark);
-            color: white;
-            border-color: var(--text-dark);
-        }
-
-        /* 表格與卡片 */
-        .table-card { 
-            background: white; 
-            border-radius: 15px; 
-            box-shadow: 0 4px 20px rgba(230,0,18,0.08); /* 帶有紅色的陰影 */
-            overflow: hidden; 
-            border: 1px solid #f1f1f1;
-        }
-        .table thead { 
-            background-color: #f8f8f8; 
-            color: var(--text-dark); 
-            border-bottom: 2px solid #eee;
-        }
-        .table thead th { font-weight: bold; padding: 15px 10px; }
-        .check-box-col { width: 45px; }
-
-        /* 電話連結 */
-        .phone-link {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        
-        /* 手機版優化 */
-        @media (max-width: 576px) {
-            .joy-logo-text { font-size: 1.5rem; }
-            .main-container { padding: 5px; }
-            .table-card { border-radius: 10px; }
-            .table th, .table td { font-size: 0.9rem; padding: 10px 5px; }
-        }
+        .bg-joy { background-color: #e60012 !important; }
+        .btn-joy { background-color: #e60012; color: white; border: none; }
+        .btn-joy:hover { background-color: #c4000f; color: white; }
+        .nav-joy { background-color: #e60012; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .day-btn { border-radius: 20px; margin: 2px; font-weight: bold; }
+        .card { border: none; border-radius: 15px; overflow: hidden; }
+        .badge-teacher { background-color: #e3f2fd; color: #0d47a1; font-weight: normal; }
+        .action-btn { font-size: 1.2rem; text-decoration: none; padding: 5px; }
     </style>
 </head>
 <body>
 
-<div class="joy-header text-center">
+    <!-- 頂部導覽列 -->
+    <nav class="navbar nav-joy sticky-top mb-4">
+        <div class="container d-flex justify-content-between">
+            <span class="navbar-brand mb-0 h1 fw-bold">Joy English 管理系統</span>
+            <span class="badge bg-white text-danger shadow-sm">{{ current_day }}</span>
+        </div>
+    </nav>
+
     <div class="container">
-        <span class="joy-logo-text">JOY</span>
-        <span class="joy-logo-subtext"> English</span>
-        <div class="text-muted small"></div>
-    </div>
-</div>
-
-<div class="container main-container">
-    <div class="text-center mb-4">
-        <div class="day-btn-group mb-3 btn-group">
-            {% for d in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %}
-            <a href="/{{ d }}" class="btn {{ 'active' if current_day == d else '' }} btn-sm">
-                {% if d == 'Monday' %}週一{% elif d == 'Tuesday' %}週二{% elif d == 'Wednesday' %}週三{% elif d == 'Thursday' %}週四{% elif d == 'Friday' %}週五{% endif %}
-            </a>
-            {% endfor %}
-        </div>
-
-        <div class="mb-2 p-2 rounded" style="background-color: #fcfcfc; border: 1px solid #f1f1f1;">
-            <small class="text-muted d-block mb-2 fw-bold"></small>
-            <button class="btn btn-sm btn-dark teacher-tag" onclick="filterTeacher('all', this)">All 全部</button>
-            {% for t in teachers %}
-            <button class="btn btn-sm btn-outline-secondary teacher-tag" onclick="filterTeacher('{{ t }}', this)">{{ t }}</button>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div class="card table-card">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle text-center mb-0">
-                <thead>
-                    <tr>
-                        <th class="check-box-col">Do</th>
-                        <th>Name 姓名</th>
-                        <th>Phone 電話</th>
-                        <th>School 國小</th>
-                        <th>Class 班級</th>
-                    </tr>
-                </thead>
-                <tbody id="studentTableBody">
-                    {% for s in student_list %}
-                    <tr class="student-row" data-teacher="{{ s['老師'] }}" onclick="handleRowClick(this, event)">
-                        <td class="check-box-col" onclick="event.stopPropagation();">
-                            <input type="checkbox" class="form-check-input" onclick="handleCheckbox(this)">
-                        </td>
-                        <td class="fw-bold" style="color: var(--joy-dark-red);">{{ s['姓名'] }}</td>
-                        <td>
-                            <a href="tel:{{ s['電話'] }}" class="phone-link" onclick="event.stopPropagation();">
-                                {{ s['電話'] }}
-                            </a>
-                        </td>
-                        <td class="text-muted small">{{ s['國小'] }}</td>
-                        <td><span class="badge rounded-pill bg-white text-dark border">{{ s['班級'] }}</span></td>
-                    </tr>
+        <!-- 星期切換選單 -->
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <div class="btn-group w-100 shadow-sm" role="group">
+                    {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] %}
+                    <a href="/{{ day }}" class="btn btn-outline-danger day-btn {% if current_day == day %}active text-white{% endif %}">
+                        {{ {"Monday":"一","Tuesday":"二","Wednesday":"三","Thursday":"四","Friday":"五"}[day] }}
+                    </a>
                     {% endfor %}
-                </tbody>
-            </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 學生清單表格 -->
+        <div class="card shadow-sm mb-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">姓名</th>
+                            <th>電話</th>
+                            <th>老師</th>
+                            <th class="text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if student_list %}
+                            {% for student in student_list %}
+                            <tr>
+                                <td class="ps-3 fw-bold">{{ student.姓名 }}</td>
+                                <td>
+                                    <a href="tel:{{ student.電話 }}" class="text-decoration-none text-primary">
+                                        {{ student.電話 if student.電話 else '無' }}
+                                    </a>
+                                </td>
+                                <td><span class="badge badge-teacher">{{ student.老師 }}</span></td>
+                                <td class="text-center">
+                                    <!-- 編輯按鈕 (觸發 Modal) -->
+                                    <button class="btn btn-link action-btn" data-bs-toggle="modal" data-bs-target="#editModal{{ loop.index }}">✏️</button>
+                                    
+                                    <!-- 刪除按鈕 -->
+                                    <a href="{{ url_for('delete_student', day=current_day, name=student.姓名) }}" 
+                                       class="action-btn" onclick="return confirm('確定要刪除「{{ student.姓名 }}」嗎？')">🗑️</a>
+
+                                    <!-- 編輯彈出視窗 -->
+                                    <div class="modal fade text-start" id="editModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content">
+                                                <form action="/update_student" method="POST">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">修改學生資訊</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="day" value="{{ current_day }}">
+                                                        <input type="hidden" name="old_name" value="{{ student.姓名 }}">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">學生姓名</label>
+                                                            <input type="text" name="name" class="form-control" value="{{ student.姓名 }}" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">聯絡電話</label>
+                                                            <input type="text" name="phone" class="form-control" value="{{ student.電話 }}">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">負責老師</label>
+                                                            <input type="text" name="teacher" class="form-control" value="{{ student.老師 }}">
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                                        <button type="submit" class="btn btn-primary">儲存修改</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Modal 結束 -->
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="4" class="text-center py-5 text-muted">今日無課程資料</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 新增學生表單 -->
+        <div class="card shadow-sm border-joy">
+            <div class="card-header bg-joy text-white fw-bold">✨ 新增學生至 {{ current_day }}</div>
+            <div class="card-body bg-white">
+                <form action="/add_student" method="POST" class="row g-3">
+                    <input type="hidden" name="day" value="{{ current_day }}">
+                    <div class="col-6 col-md-4">
+                        <input type="text" name="name" class="form-control" placeholder="姓名" required>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <input type="text" name="phone" class="form-control" placeholder="電話" required>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <input type="text" name="teacher" class="form-control" list="teacher_list" placeholder="老師">
+                        <datalist id="teacher_list">
+                            {% for t in teachers %}<option value="{{ t }}">{% endfor %}
+                        </datalist>
+                    </div>
+                    <div class="col-12 col-md-1 d-grid">
+                        <button type="submit" class="btn btn-joy">新增</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-    
-    <div class="text-center mt-4 mb-5">
-        <small class="text-muted">Currently Viewing: <strong>{{ current_day }}</strong></small>
-    </div>
-</div>
 
-<script>
-    // 處理整列點擊
-    function handleRowClick(row, event) {
-        // 如果點擊的是 A 連結(電話)，則不觸發點名
-        if (event.target.tagName === 'A') return;
-        
-        const checkbox = row.querySelector('input[type="checkbox"]');
-        checkbox.checked = !checkbox.checked;
-        updateRowStyle(row, checkbox.checked);
-    }
-
-    // 處理單獨點擊勾選框
-    function handleCheckbox(checkbox) {
-        const row = checkbox.closest('tr');
-        updateRowStyle(row, checkbox.checked);
-    }
-
-    // 更新列的顏色樣式 (改為佳音紅風格)
-    function updateRowStyle(row, isChecked) {
-        if (isChecked) {
-            row.classList.add('checked-in');
-        } else {
-            row.classList.remove('checked-in');
-        }
-    }
-
-    // 老師篩選邏輯
-    function filterTeacher(teacherName, btn) {
-        const rows = document.querySelectorAll('.student-row');
-        rows.forEach(row => {
-            if (teacherName === 'all' || row.getAttribute('data-teacher') === teacherName) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // 切換按鈕顏色
-        document.querySelectorAll('.teacher-tag').forEach(b => {
-            b.classList.remove('btn-dark');
-            b.classList.add('btn-outline-secondary');
-        });
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-dark');
-    }
-</script>
-
+    <!-- 引入 Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
