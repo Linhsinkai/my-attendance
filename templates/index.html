@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>佳音英語點名系統</title>
-    <!-- 引入 Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入 Google 字體 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -21,21 +19,21 @@
         .day-btn { border-radius: 20px; margin: 2px; font-weight: bold; }
         .card { border: none; border-radius: 15px; overflow: hidden; }
         .badge-teacher { background-color: #e3f2fd; color: #0d47a1; font-weight: normal; }
-        .action-btn { font-size: 1.2rem; text-decoration: none; padding: 5px; }
+        .action-btn { font-size: 1.2rem; text-decoration: none; padding: 5px; cursor: pointer; border: none; background: none;}
+        /* 點名開關放大 */
+        .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <!-- 頂部導覽列 -->
     <nav class="navbar nav-joy sticky-top mb-4">
-        <div class="container d-flex justify-content-between">
-            <span class="navbar-brand mb-0 h1 fw-bold">Joy English 管理系統</span>
-            <span class="badge bg-white text-danger shadow-sm">{{ current_day }}</span>
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="navbar-brand mb-0 h1 fw-bold">Joy English 點名系統</span>
+            <span class="badge bg-white text-danger shadow-sm fs-6">{{ current_day }}</span>
         </div>
     </nav>
 
     <div class="container">
-        <!-- 星期切換選單 -->
         <div class="row mb-4">
             <div class="col-12 text-center">
                 <div class="btn-group w-100 shadow-sm" role="group">
@@ -48,14 +46,27 @@
             </div>
         </div>
 
-        <!-- 學生清單表格 -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0">👩‍🏫 篩選老師</span>
+                    <select class="form-select border-start-0 fw-bold text-primary" id="teacherFilter" onchange="filterTeacher()">
+                        <option value="all">顯示全班 (所有老師)</option>
+                        {% for t in teachers %}
+                        <option value="{{ t }}">{{ t }} 老師的課</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div class="card shadow-sm mb-4">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0" id="studentTable">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">姓名</th>
-                            <th>電話</th>
+                            <th class="ps-3 text-center" style="width: 80px;">點名</th>
+                            <th>姓名</th>
                             <th>老師</th>
                             <th class="text-center">操作</th>
                         </tr>
@@ -63,29 +74,33 @@
                     <tbody>
                         {% if student_list %}
                             {% for student in student_list %}
-                            <tr>
-                                <td class="ps-3 fw-bold">{{ student.姓名 }}</td>
-                                <td>
-                                    <a href="tel:{{ student.電話 }}" class="text-decoration-none text-primary">
-                                        {{ student.電話 if student.電話 else '無' }}
-                                    </a>
+                            <tr class="student-row" data-teacher="{{ student.老師 }}">
+                                <td class="ps-3 text-center">
+                                    <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                        <input class="form-check-input" type="checkbox" onchange="toggleAttendance(this)">
+                                    </div>
                                 </td>
+                                
+                                <td class="fw-bold fs-5">{{ student.姓名 }}
+                                    <div class="small fw-normal">
+                                        <a href="tel:{{ student.電話 }}" class="text-decoration-none text-muted">📞 {{ student.電話 if student.電話 else '無電話' }}</a>
+                                    </div>
+                                </td>
+                                
                                 <td><span class="badge badge-teacher">{{ student.老師 }}</span></td>
+                                
                                 <td class="text-center">
-                                    <!-- 編輯按鈕 (觸發 Modal) -->
-                                    <button class="btn btn-link action-btn" data-bs-toggle="modal" data-bs-target="#editModal{{ loop.index }}">✏️</button>
+                                    <button class="action-btn" data-bs-toggle="modal" data-bs-target="#editModal{{ loop.index }}">✏️</button>
                                     
-                                    <!-- 刪除按鈕 -->
                                     <a href="{{ url_for('delete_student', day=current_day, name=student.姓名) }}" 
                                        class="action-btn" onclick="return confirm('確定要刪除「{{ student.姓名 }}」嗎？')">🗑️</a>
 
-                                    <!-- 編輯彈出視窗 -->
-                                    <div class="modal fade text-start" id="editModal{{ loop.index }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal fade text-start" id="editModal{{ loop.index }}" tabindex="-1">
                                         <div class="modal-dialog modal-dialog-centered">
                                             <div class="modal-content">
                                                 <form action="/update_student" method="POST">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">修改學生資訊</h5>
+                                                    <div class="modal-header bg-light">
+                                                        <h5 class="modal-title fw-bold">修改學生資訊</h5>
                                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                     </div>
                                                     <div class="modal-body">
@@ -106,13 +121,12 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                                        <button type="submit" class="btn btn-primary">儲存修改</button>
+                                                        <button type="submit" class="btn btn-joy">儲存修改</button>
                                                     </div>
                                                 </form>
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Modal 結束 -->
                                 </td>
                             </tr>
                             {% endfor %}
@@ -124,7 +138,6 @@
             </div>
         </div>
 
-        <!-- 新增學生表單 -->
         <div class="card shadow-sm border-joy">
             <div class="card-header bg-joy text-white fw-bold">✨ 新增學生至 {{ current_day }}</div>
             <div class="card-body bg-white">
@@ -134,7 +147,7 @@
                         <input type="text" name="name" class="form-control" placeholder="姓名" required>
                     </div>
                     <div class="col-6 col-md-4">
-                        <input type="text" name="phone" class="form-control" placeholder="電話" required>
+                        <input type="text" name="phone" class="form-control" placeholder="電話">
                     </div>
                     <div class="col-12 col-md-3">
                         <input type="text" name="teacher" class="form-control" list="teacher_list" placeholder="老師">
@@ -150,7 +163,35 @@
         </div>
     </div>
 
-    <!-- 引入 Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // 老師過濾功能
+        function filterTeacher() {
+            const selectedTeacher = document.getElementById("teacherFilter").value;
+            const rows = document.querySelectorAll(".student-row");
+
+            rows.forEach(row => {
+                const rowTeacher = row.getAttribute("data-teacher");
+                if (selectedTeacher === "all" || selectedTeacher === rowTeacher) {
+                    row.style.display = ""; // 顯示
+                } else {
+                    row.style.display = "none"; // 隱藏
+                }
+            });
+        }
+
+        // 點名開關功能 (切換背景顏色)
+        function toggleAttendance(checkbox) {
+            const row = checkbox.closest('tr');
+            if (checkbox.checked) {
+                // 如果打勾，整行變成淺綠色
+                row.classList.add('table-success');
+            } else {
+                // 取消打勾，恢復原狀
+                row.classList.remove('table-success');
+            }
+        }
+    </script>
 </body>
 </html>
